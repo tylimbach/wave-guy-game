@@ -6,8 +6,8 @@ use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
-use wave_guy::GamePlugin;
 use std::io::Cursor;
+use wave_guy::GamePlugin;
 use winit::window::Icon;
 
 fn main() {
