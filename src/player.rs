@@ -22,7 +22,7 @@ fn spawn_player(mut commands: Commands, textures: Res<TextureAssets>) {
         .spawn(SpriteBundle {
             texture: textures.monster1.clone(),
             transform: Transform::from_translation(Vec3::new(0., 0., 1.))
-                .with_scale(Vec3::new(1., 1., 1.)),
+                .with_scale(Vec3::new(3., 3., 3.)),
             ..Default::default()
         })
         .insert(Player);
