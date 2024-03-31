@@ -33,6 +33,12 @@ enum GameState {
     Menu,
 }
 
+#[derive(SystemSet, Clone, Eq, PartialEq, Debug, Hash)]
+enum GameplaySet {
+    PlayerUpdate,
+    EnemyUpdate,
+}
+
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
@@ -48,7 +54,11 @@ impl Plugin for GamePlugin {
 
         #[cfg(debug_assertions)]
         {
-            app.add_plugins((FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin::default()));
+            app.add_plugins((FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin::default()))
+                .configure_sets(
+                    Update,
+                    GameplaySet::EnemyUpdate.after(GameplaySet::PlayerUpdate),
+                );
         }
     }
 }
