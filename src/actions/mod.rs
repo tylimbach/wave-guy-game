@@ -25,6 +25,7 @@ impl Plugin for ActionsPlugin {
 #[derive(Default, Resource)]
 pub struct Actions {
     pub player_movement: Option<Vec2>,
+    pub camera_movement: Option<Vec3>
 }
 
 pub fn set_movement_actions(
@@ -57,4 +58,8 @@ pub fn set_movement_actions(
     } else {
         actions.player_movement = None;
     }
+
+    let mut camera_movement = Vec3::new(
+        get_movement
+    )
 }
