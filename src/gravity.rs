@@ -17,7 +17,7 @@ pub struct Gravity {
 
 pub struct Immovable;
 
-
+/*
 impl Plugin for GravityPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(GameState::Playing), setup)
@@ -76,3 +76,4 @@ fn move_enemy(
         enemy_transform.translation += movement;
     }
 }
+*/

@@ -6,6 +6,7 @@ mod enemy;
 mod loading;
 mod menu;
 mod player;
+mod camera;
 
 use crate::actions::ActionsPlugin;
 use crate::audio::InternalAudioPlugin;
@@ -13,8 +14,9 @@ use crate::enemy::EnemyPlugin;
 use crate::loading::LoadingPlugin;
 use crate::menu::MenuPlugin;
 use crate::player::PlayerPlugin;
+use crate::camera::CameraPlugin as CustomCameraPlugin;
 
-use bevy::app::App;
+use bevy::{a11y::accesskit::CustomAction, app::App, render::camera::CameraPlugin};
 #[cfg(debug_assertions)]
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::prelude::*;
@@ -50,6 +52,7 @@ impl Plugin for GamePlugin {
             InternalAudioPlugin,
             PlayerPlugin,
             EnemyPlugin,
+            CustomCameraPlugin
         ));
 
         #[cfg(debug_assertions)]

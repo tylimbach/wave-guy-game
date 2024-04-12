@@ -5,7 +5,8 @@ pub enum GameControl {
     Down,
     Left,
     Right,
-    ZoomOut
+    ZoomIn,
+    ZoomOut,
 }
 
 impl GameControl {
@@ -23,8 +24,11 @@ impl GameControl {
             GameControl::Right => {
                 keyboard_input.pressed(KeyCode::KeyD) || keyboard_input.pressed(KeyCode::ArrowRight)
             }
+            GameControl::ZoomIn => {
+                keyboard_input.pressed(KeyCode::KeyQ)
+            }
             GameControl::ZoomOut => {
-                keyboard_input.pressed(KeyCode::KeyZ)
+                keyboard_input.pressed(KeyCode::KeyE)
             }
         }
     }

@@ -59,7 +59,17 @@ pub fn set_movement_actions(
         actions.player_movement = None;
     }
 
-    let mut camera_movement = Vec3::new(
-        get_movement
-    )
+    let camera_movement = Vec3::new(
+        0.0,
+        0.0,
+        get_movement(GameControl::ZoomIn, &keyboard_input)
+            - get_movement(GameControl::ZoomOut, &keyboard_input),
+    );
+
+    // touch position affect camera?
+    if camera_movement != Vec3::ZERO {
+        actions.camera_movement = Some(camera_movement.normalize());
+    } else {
+        actions.camera_movement = None;
+    }
 }
