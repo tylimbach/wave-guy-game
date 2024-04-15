@@ -1,23 +1,88 @@
 use crate::{GameState, GameplaySet};
-use bevy::prelude::*;
+use bevy::{math::math, prelude::*};
 use rand::prelude::*;
 
 pub struct GravityPlugin;
 
+pub const GRAVITY_CONST: f32 = 1;
+
 #[derive(Component)]
 pub struct GravitySource {
-    strength: f32,
     max_range: f32
 }
 
 #[derive(Component)]
-pub struct Gravity {
-
+pub struct Velocity {
+    velocity: Vec2
 }
 
-pub struct Immovable;
+impl Deref for Velocity {
+    type Target = Vec2;
 
-/*
+    fn deref(&self) -> &Self::Target {
+        &self.velocity
+    }
+}
+impl DerefMut for Velocity {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.velocity
+    }
+}
+
+#[derive(Component)]
+pub struct Acceleration {
+    acceleration: Vec2
+}
+
+impl Deref for Acceleration {
+    type Target = Vec2;
+
+    fn deref(&self) -> &Self::Target {
+        &self.acceleration
+    }
+}
+impl DerefMut for Acceleration {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.acceleration
+    }
+}
+
+#[derive(Component)]
+pub struct Force {
+    force: Vec2
+}
+
+impl Deref for Force {
+    type Target = Vec2;
+
+    fn deref(&self) -> &Self::Target {
+        &self.force
+    }
+}
+impl DerefMut for Force {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.force
+    }
+}
+
+#[derive(Component)]
+pub struct Mass {
+    mass: f32
+}
+
+impl Deref for Mass {
+    type Target = Vec2;
+
+    fn deref(&self) -> &Self::Target {
+        &self.mass
+    }
+}
+impl DerefMut for Mass {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.mass
+    }
+}
+
 impl Plugin for GravityPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(GameState::Playing), setup)
@@ -33,47 +98,45 @@ impl Plugin for GravityPlugin {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn(Spawner::new(5.0));
+    commands.spawn(GravitySource::new());
 }
 
-fn apply_gravity(
-    mut commands: Commands,
-    textures: Res<TextureAssets>,
-    time: Res<Time>,
-    mut spawner_query: Query<&mut Spawner>,
+fn force_update(
+    mut forces_query: Query<(&mut Force, &Mass, &Transform)>,
+    gravity_query: Query<(&GravitySource, &Mass, &Transform)>
 ) {
-    // could cache this
-    let mut rng = rand::thread_rng();
-    for mut spawner in spawner_query.iter_mut() {
-        spawner.timer.tick(time.delta());
-        if spawner.timer.finished() {
-            let rand_x = rng.gen_range(-1000.0..1000.0);
-            let rand_y = rng.gen_range(-1000.0..1000.0);
-            commands
-                .spawn(SpriteBundle {
-                    texture: textures.monster1.clone(),
-                    transform: Transform::from_translation(Vec3::new(rand_x, rand_y, 1.))
-                        .with_scale(Vec3::new(1., 1., 1.)),
-                    ..Default::default()
-                })
-                .insert(Enemy);
+    // todo: make sure translations are centered!
+    // maybe skip calc on self?
+    for (force, mass, transform) in forces_query.iter_mut() {
+        *force = Vec2::new(0.0f, 0.0f);
+        for (source_gravity, source_mass, source_transform) in gravity_query.iter() {
+            let distance_vector = (transform.translation - source_transform.translation);
+            let distance = distance_vector.length();
+            // does this need a bound to prevent negative dist?
+            if distance < source_gravity.max_range {
+                let force_magnitude = GRAVITY_CONST * ((mass * source_mass) / (distance * distance));
+                let force_direction = distance_vector.normalize();
+                *force += force_direction * force_magnitude;
+            }
         }
     }
 }
 
-fn move_enemy(
+fn velocity_update(
     time: Res<Time>,
-    mut enemy_query: Query<&mut Transform, (With<Enemy>, Without<Player>)>,
-    player_query: Query<&Transform, (With<Player>, Without<Enemy>)>,
+    mut velocity_query: Query<(&mut Velocity, &Acceleration)>,
 ) {
-    let speed = 100.;
-
-    let player_translation = player_query.single().translation;
-
-    for mut enemy_transform in enemy_query.iter_mut() {
-        let direction = (player_translation - enemy_transform.translation).normalize_or_zero();
-        let movement = direction * speed * time.delta_seconds();
-        enemy_transform.translation += movement;
+    for (mut velocity, acceleration) in velocity_query.iter_mut() {
+        *velocity += acceleration * time.delta_seconds();
+        // todo: add player input?
     }
 }
-*/
+
+fn position_update(
+    time: Res<Time>,
+    mut transform_query: Query<(&mut Transform, &Velocity)>
+) {
+    for (mut transform, velocity) in transform_query.iter_mut() {
+        transform.translation += velocity * time.delta_seconds();
+    }
+}

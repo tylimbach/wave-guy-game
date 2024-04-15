@@ -7,6 +7,7 @@ mod loading;
 mod menu;
 mod player;
 mod camera;
+mod gravity;
 
 use crate::actions::ActionsPlugin;
 use crate::audio::InternalAudioPlugin;
@@ -15,6 +16,7 @@ use crate::loading::LoadingPlugin;
 use crate::menu::MenuPlugin;
 use crate::player::PlayerPlugin;
 use crate::camera::CameraPlugin as CustomCameraPlugin;
+use crate::gravity::GravityPlugin;
 
 use bevy::{a11y::accesskit::CustomAction, app::App, render::camera::CameraPlugin};
 #[cfg(debug_assertions)]
@@ -52,7 +54,8 @@ impl Plugin for GamePlugin {
             InternalAudioPlugin,
             PlayerPlugin,
             EnemyPlugin,
-            CustomCameraPlugin
+            CustomCameraPlugin,
+            GravityPlugin,
         ));
 
         #[cfg(debug_assertions)]
