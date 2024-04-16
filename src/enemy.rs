@@ -1,3 +1,4 @@
+use crate::gravity::{Mass, PhysicsBundle};
 use crate::loading::TextureAssets;
 use crate::player::Player;
 use crate::{GameState, GameplaySet};
@@ -60,7 +61,11 @@ fn spawn_enemy(
                         .with_scale(Vec3::new(1., 1., 1.)),
                     ..Default::default()
                 })
-                .insert(Enemy);
+                .insert(Enemy)
+                .insert(PhysicsBundle {
+                    mass: Mass(5.),
+                    ..default()
+                });
         }
     }
 }
@@ -70,6 +75,7 @@ fn move_enemy(
     mut enemy_query: Query<&mut Transform, (With<Enemy>, Without<Player>)>,
     player_query: Query<&Transform, (With<Player>, Without<Enemy>)>,
 ) {
+    // todo: change to use force
     let speed = 100.;
 
     let player_translation = player_query.single().translation;

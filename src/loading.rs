@@ -36,4 +36,6 @@ pub struct TextureAssets {
     pub github: Handle<Image>,
     #[asset(path = "textures/monsters/icon1.png")]
     pub monster1: Handle<Image>,
+    #[asset(path = "textures/black_hole.png")]
+    pub black_hole: Handle<Image>,
 }

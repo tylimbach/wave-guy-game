@@ -24,12 +24,8 @@ impl GameControl {
             GameControl::Right => {
                 keyboard_input.pressed(KeyCode::KeyD) || keyboard_input.pressed(KeyCode::ArrowRight)
             }
-            GameControl::ZoomIn => {
-                keyboard_input.pressed(KeyCode::KeyQ)
-            }
-            GameControl::ZoomOut => {
-                keyboard_input.pressed(KeyCode::KeyE)
-            }
+            GameControl::ZoomIn => keyboard_input.pressed(KeyCode::KeyQ),
+            GameControl::ZoomOut => keyboard_input.pressed(KeyCode::KeyE),
         }
     }
 }

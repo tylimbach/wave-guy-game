@@ -2,23 +2,23 @@
 
 mod actions;
 mod audio;
+mod camera;
 mod enemy;
+mod gravity;
 mod loading;
 mod menu;
 mod player;
-mod camera;
-mod gravity;
 
 use crate::actions::ActionsPlugin;
 use crate::audio::InternalAudioPlugin;
+use crate::camera::CameraPlugin as CustomCameraPlugin;
 use crate::enemy::EnemyPlugin;
+use crate::gravity::GravityPlugin;
 use crate::loading::LoadingPlugin;
 use crate::menu::MenuPlugin;
 use crate::player::PlayerPlugin;
-use crate::camera::CameraPlugin as CustomCameraPlugin;
-use crate::gravity::GravityPlugin;
 
-use bevy::{a11y::accesskit::CustomAction, app::App, render::camera::CameraPlugin};
+use bevy::app::App;
 #[cfg(debug_assertions)]
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::prelude::*;
@@ -41,6 +41,7 @@ enum GameState {
 enum GameplaySet {
     PlayerUpdate,
     EnemyUpdate,
+    Physics,
 }
 
 pub struct GamePlugin;
@@ -63,7 +64,10 @@ impl Plugin for GamePlugin {
             app.add_plugins((FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin::default()))
                 .configure_sets(
                     Update,
-                    GameplaySet::EnemyUpdate.after(GameplaySet::PlayerUpdate),
+                    (
+                        GameplaySet::EnemyUpdate.after(GameplaySet::PlayerUpdate),
+                        GameplaySet::Physics.after(GameplaySet::EnemyUpdate),
+                    ),
                 );
         }
     }

@@ -25,7 +25,7 @@ impl Plugin for ActionsPlugin {
 #[derive(Default, Resource)]
 pub struct Actions {
     pub player_movement: Option<Vec2>,
-    pub camera_movement: Option<Vec3>
+    pub camera_movement: Option<Vec3>,
 }
 
 pub fn set_movement_actions(
