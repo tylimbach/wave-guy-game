@@ -76,8 +76,17 @@ fn setup(mut commands: Commands, textures: Res<TextureAssets>) {
                 .with_scale(Vec3::new(1.5, 1.5, 1.5)),
             ..Default::default()
         })
-        .insert(GravitySource { max_range: 2000.0 })
-        .insert(Mass(4000000.0));
+        .insert(GravitySource { max_range: 2500.0 })
+        .insert(Mass(6000000.0));
+    commands
+        .spawn(SpriteBundle {
+            texture: textures.black_hole.clone(),
+            transform: Transform::from_translation(Vec3::new(1500., 1500., 2.))
+                .with_scale(Vec3::new(5.0, 5.0, 5.0)),
+            ..Default::default()
+        })
+        .insert(GravitySource { max_range: 15000.0 })
+        .insert(Mass(250000000.0));
 }
 
 fn force_update(
@@ -109,7 +118,7 @@ fn force_update_input(actions: Res<Actions>, mut player_query: Query<&mut Force,
         return;
     }
 
-    let force_magnitude = 100.0;
+    let force_magnitude = 1000.0;
     let movement_force = Vec3::new(
         actions.player_movement.unwrap().x * force_magnitude,
         actions.player_movement.unwrap().y * force_magnitude,

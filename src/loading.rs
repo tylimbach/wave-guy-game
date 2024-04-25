@@ -39,3 +39,9 @@ pub struct TextureAssets {
     #[asset(path = "textures/black_hole.png")]
     pub black_hole: Handle<Image>,
 }
+
+#[derive(AssetCollection, Resource)]
+pub struct ShaderAssets {
+    #[asset(path = "shaders/custom_material.wgsl")]
+    pub custom_material: Handle<Shader>,
+}

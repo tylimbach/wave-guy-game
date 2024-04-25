@@ -1,3 +1,4 @@
+use crate::actions::Actions;
 use crate::gravity::{Mass, PhysicsBundle};
 use crate::loading::TextureAssets;
 use crate::GameState;
@@ -29,4 +30,11 @@ fn spawn_player(mut commands: Commands, textures: Res<TextureAssets>) {
             mass: Mass(10.),
             ..default()
         });
+}
+
+fn shoot(
+    mut commands: Commands,
+    actions: Res<Actions>,
+    player_query: Query<&Transform, With<Player>>,
+) {
 }
