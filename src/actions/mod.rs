@@ -1,7 +1,8 @@
+use bevy::input::mouse::MouseButtonInput;
 use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
 
-use crate::actions::game_control::{get_movement, GameControl};
+use crate::actions::game_control::{get_control_pressed, GameControl};
 use crate::player::Player;
 use crate::GameState;
 
@@ -26,20 +27,22 @@ impl Plugin for ActionsPlugin {
 pub struct Actions {
     pub player_movement: Option<Vec2>,
     pub camera_movement: Option<Vec3>,
+    pub shoot: Option<Vec2>,
 }
 
 pub fn set_movement_actions(
     mut actions: ResMut<Actions>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
+    mouse_input: Res<ButtonInput<MouseButton>>,
     touch_input: Res<Touches>,
     player: Query<&Transform, With<Player>>,
     camera: Query<(&Camera, &GlobalTransform), With<Camera2d>>,
 ) {
     let mut player_movement = Vec2::new(
-        get_movement(GameControl::Right, &keyboard_input)
-            - get_movement(GameControl::Left, &keyboard_input),
-        get_movement(GameControl::Up, &keyboard_input)
-            - get_movement(GameControl::Down, &keyboard_input),
+        get_control_pressed(GameControl::Right, &keyboard_input, &mouse_input)
+            - get_control_pressed(GameControl::Left, &keyboard_input, &mouse_input),
+        get_control_pressed(GameControl::Up, &keyboard_input, &mouse_input)
+            - get_control_pressed(GameControl::Down, &keyboard_input, &mouse_input),
     );
 
     if let Some(touch_position) = touch_input.first_pressed_position() {
@@ -62,8 +65,8 @@ pub fn set_movement_actions(
     let camera_movement = Vec3::new(
         0.0,
         0.0,
-        get_movement(GameControl::ZoomIn, &keyboard_input)
-            - get_movement(GameControl::ZoomOut, &keyboard_input),
+        get_control_pressed(GameControl::ZoomIn, &keyboard_input, &mouse_input)
+            - get_control_pressed(GameControl::ZoomOut, &keyboard_input, &mouse_input),
     );
 
     // touch position affect camera?
@@ -72,4 +75,13 @@ pub fn set_movement_actions(
     } else {
         actions.camera_movement = None;
     }
+}
+
+pub fn set_shoot_actions(
+    mut actions: ResMut<Actions>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mouse_input: Res<ButtonInput<MouseButton>>,
+) {
+    
+    
 }

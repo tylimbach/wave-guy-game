@@ -3,6 +3,7 @@ use crate::gravity::{Mass, PhysicsBundle};
 use crate::loading::TextureAssets;
 use crate::GameState;
 use bevy::prelude::*;
+use bevy::sprite::{MaterialMesh2dBundle, Mesh2d, Mesh2dHandle};
 
 pub struct PlayerPlugin;
 
@@ -34,7 +35,16 @@ fn spawn_player(mut commands: Commands, textures: Res<TextureAssets>) {
 
 fn shoot(
     mut commands: Commands,
+    mut meshes: Res<Assets<Mesh2d>>,
     actions: Res<Actions>,
     player_query: Query<&Transform, With<Player>>,
 ) {
+    let transform = player_query.single();
+
+    commands
+        .spawn(MaterialMesh2dBundle {
+            mesh: Mesh2dHandle(meshes.Add(Circle {radius: 50.0})),
+            transform: transform.clone(),
+            ..default()
+        })
 }

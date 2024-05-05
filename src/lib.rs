@@ -56,7 +56,7 @@ impl Plugin for GamePlugin {
             PlayerPlugin,
             EnemyPlugin,
             CustomCameraPlugin,
-            GravityPlugin,
+            // GravityPlugin,
         ));
 
         #[cfg(debug_assertions)]
