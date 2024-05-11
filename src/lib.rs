@@ -8,6 +8,7 @@ mod gravity;
 mod loading;
 mod menu;
 mod player;
+mod movement;
 
 use crate::actions::ActionsPlugin;
 use crate::audio::InternalAudioPlugin;
@@ -17,6 +18,7 @@ use crate::gravity::GravityPlugin;
 use crate::loading::LoadingPlugin;
 use crate::menu::MenuPlugin;
 use crate::player::PlayerPlugin;
+use crate::movement::MovementPlugin;
 
 use bevy::app::App;
 #[cfg(debug_assertions)]
@@ -42,6 +44,7 @@ enum GameplaySet {
     PlayerUpdate,
     EnemyUpdate,
     Physics,
+    PrePhysics,
 }
 
 pub struct GamePlugin;
@@ -57,6 +60,7 @@ impl Plugin for GamePlugin {
             EnemyPlugin,
             CustomCameraPlugin,
             // GravityPlugin,
+            MovementPlugin,
         ));
 
         #[cfg(debug_assertions)]
@@ -66,7 +70,8 @@ impl Plugin for GamePlugin {
                     Update,
                     (
                         GameplaySet::EnemyUpdate.after(GameplaySet::PlayerUpdate),
-                        GameplaySet::Physics.after(GameplaySet::EnemyUpdate),
+                        GameplaySet::PrePhysics.after(GameplaySet::EnemyUpdate),
+                        GameplaySet::Physics.after(GameplaySet::PrePhysics),
                     ),
                 );
         }

@@ -2,7 +2,7 @@ use bevy::input::mouse::MouseButtonInput;
 use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
 
-use crate::actions::game_control::{get_control_pressed, GameControl};
+use crate::actions::game_control::{get_one_if_pressed, GameControl};
 use crate::player::Player;
 use crate::GameState;
 
@@ -18,7 +18,10 @@ impl Plugin for ActionsPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Actions>().add_systems(
             Update,
-            set_movement_actions.run_if(in_state(GameState::Playing)),
+            (
+                set_movement_actions,
+                set_shoot_actions
+            ).run_if(in_state(GameState::Playing)),
         );
     }
 }
@@ -39,10 +42,10 @@ pub fn set_movement_actions(
     camera: Query<(&Camera, &GlobalTransform), With<Camera2d>>,
 ) {
     let mut player_movement = Vec2::new(
-        get_control_pressed(GameControl::Right, &keyboard_input, &mouse_input)
-            - get_control_pressed(GameControl::Left, &keyboard_input, &mouse_input),
-        get_control_pressed(GameControl::Up, &keyboard_input, &mouse_input)
-            - get_control_pressed(GameControl::Down, &keyboard_input, &mouse_input),
+        get_one_if_pressed(GameControl::Right, &keyboard_input, &mouse_input)
+            - get_one_if_pressed(GameControl::Left, &keyboard_input, &mouse_input),
+        get_one_if_pressed(GameControl::Up, &keyboard_input, &mouse_input)
+            - get_one_if_pressed(GameControl::Down, &keyboard_input, &mouse_input),
     );
 
     if let Some(touch_position) = touch_input.first_pressed_position() {
@@ -65,8 +68,8 @@ pub fn set_movement_actions(
     let camera_movement = Vec3::new(
         0.0,
         0.0,
-        get_control_pressed(GameControl::ZoomIn, &keyboard_input, &mouse_input)
-            - get_control_pressed(GameControl::ZoomOut, &keyboard_input, &mouse_input),
+        get_one_if_pressed(GameControl::ZoomIn, &keyboard_input, &mouse_input)
+            - get_one_if_pressed(GameControl::ZoomOut, &keyboard_input, &mouse_input),
     );
 
     // touch position affect camera?
@@ -82,6 +85,24 @@ pub fn set_shoot_actions(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mouse_input: Res<ButtonInput<MouseButton>>,
 ) {
+    let shoot_pressed = GameControl::pressed(
+        &GameControl::MainAttack, 
+        &keyboard_input, 
+        &mouse_input
+    );
     
-    
+    if shoot_pressed {
+        
+    }
+}
+
+fn cursor_position(
+    q_windows: Query<&Window, With<PrimaryWindow>>,
+) {
+    // Games typically only have one window (the primary window)
+    if let Some(position) = q_windows.single().cursor_position() {
+        println!("Cursor is inside the primary window, at {:?}", position);
+    } else {
+        println!("Cursor is not in the game window.");
+    }
 }

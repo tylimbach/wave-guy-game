@@ -1,5 +1,5 @@
-use bevy::input::mouse::MouseButtonInput;
-use bevy::prelude::{ButtonInput, KeyCode, MouseButton, Res};
+use bevy::prelude::{ButtonInput, KeyCode, MouseButton, Query, Res, Window, With};
+use bevy::window::PrimaryWindow;
 
 pub enum GameControl {
     Up,
@@ -8,7 +8,7 @@ pub enum GameControl {
     Right,
     ZoomIn,
     ZoomOut,
-    LeftClick
+    MainAttack
 }
 
 impl GameControl {
@@ -32,12 +32,12 @@ impl GameControl {
             }
             GameControl::ZoomIn => keyboard_input.pressed(KeyCode::KeyQ),
             GameControl::ZoomOut => keyboard_input.pressed(KeyCode::KeyE),
-            GameControl::LeftClick => mouse_input.pressed(MouseButton::Left),
+            GameControl::MainAttack => mouse_input.pressed(MouseButton::Left),
         }
     }
 }
 
-pub fn get_control_pressed(
+pub fn get_one_if_pressed(
     control: GameControl,
     input: &Res<ButtonInput<KeyCode>>,
     mouse_input: &Res<ButtonInput<MouseButton>>,

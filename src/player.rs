@@ -1,9 +1,9 @@
 use crate::actions::Actions;
-use crate::gravity::{Mass, PhysicsBundle};
 use crate::loading::TextureAssets;
 use crate::GameState;
 use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2d, Mesh2dHandle};
+use crate::movement::{Mass, PhysicsBundle};
 
 pub struct PlayerPlugin;
 
@@ -39,6 +39,8 @@ fn shoot(
     actions: Res<Actions>,
     player_query: Query<&Transform, With<Player>>,
 ) {
+    if actions.camera_movement
+    
     let transform = player_query.single();
 
     commands
@@ -46,5 +48,5 @@ fn shoot(
             mesh: Mesh2dHandle(meshes.Add(Circle {radius: 50.0})),
             transform: transform.clone(),
             ..default()
-        })
+        });
 }
