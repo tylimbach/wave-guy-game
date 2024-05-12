@@ -1,5 +1,4 @@
-use bevy::prelude::{ButtonInput, KeyCode, MouseButton, Query, Res, Window, With};
-use bevy::window::PrimaryWindow;
+use bevy::prelude::{ButtonInput, KeyCode, MouseButton, Res};
 
 pub enum GameControl {
     Up,
@@ -37,7 +36,7 @@ impl GameControl {
     }
 }
 
-pub fn get_one_if_pressed(
+pub fn get_control_pressed(
     control: GameControl,
     input: &Res<ButtonInput<KeyCode>>,
     mouse_input: &Res<ButtonInput<MouseButton>>,

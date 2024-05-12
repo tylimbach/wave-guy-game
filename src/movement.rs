@@ -1,4 +1,4 @@
-use crate::{actions::Actions, loading::TextureAssets, player::Player, GameState, GameplaySet};
+use crate::{actions::Actions, player::Player, GameState, GameplaySet};
 use bevy::prelude::*;
 
 pub struct MovementPlugin;
@@ -36,8 +36,7 @@ impl Default for PhysicsBundle {
 
 impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Playing), setup)
-            .add_systems(
+        app.add_systems(
                 Update,
                 (
                     force_update_input,

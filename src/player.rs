@@ -1,4 +1,5 @@
 use crate::actions::Actions;
+use crate::gravity::{Mass};
 use crate::loading::TextureAssets;
 use crate::GameState;
 use bevy::prelude::*;
@@ -39,14 +40,15 @@ fn shoot(
     actions: Res<Actions>,
     player_query: Query<&Transform, With<Player>>,
 ) {
-    if actions.camera_movement
-    
-    let transform = player_query.single();
-
-    commands
-        .spawn(MaterialMesh2dBundle {
-            mesh: Mesh2dHandle(meshes.Add(Circle {radius: 50.0})),
-            transform: transform.clone(),
-            ..default()
-        });
+    if let Some(shoot_coord) = actions.shoot {
+        if let player_translation = player_query.single().translation {
+            
+            commands
+                .spawn(MaterialMesh2dBundle {
+                    mesh: Mesh2dHandle(meshes.Add(Circle { radius: 50.0 })),
+                    transform: Transform::from_translation(player_translation),
+                    ..default()
+                })
+        }
+    }
 }

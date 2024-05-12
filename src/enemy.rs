@@ -1,9 +1,10 @@
-use crate::gravity::{Mass, PhysicsBundle};
+use crate::gravity::{Mass};
 use crate::loading::TextureAssets;
 use crate::player::Player;
 use crate::{GameState, GameplaySet};
 use bevy::prelude::*;
 use rand::prelude::*;
+use crate::movement::PhysicsBundle;
 
 pub struct EnemyPlugin;
 
