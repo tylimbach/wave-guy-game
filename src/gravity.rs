@@ -1,6 +1,6 @@
+use crate::movement::{Force, Mass};
 use crate::{loading::TextureAssets, GameState, GameplaySet};
 use bevy::prelude::*;
-use crate::movement::{Force, Mass};
 
 pub struct GravityPlugin;
 
@@ -15,8 +15,8 @@ impl Plugin for GravityPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(GameState::Playing), setup)
             .add_systems(
-                Update, 
-                force_update
+                Update,
+                force_apply_gravity
                     .run_if(in_state(GameState::Playing))
                     .in_set(GameplaySet::PrePhysics),
             );
@@ -53,14 +53,14 @@ fn setup(mut commands: Commands, textures: Res<TextureAssets>) {
         .insert(Mass(250000000.0));
 }
 
-fn force_update(
+fn force_apply_gravity(
     mut forces_query: Query<(&mut Force, &Mass, &Transform)>,
     gravity_query: Query<(&GravitySource, &Mass, &Transform)>,
 ) {
     for (mut force, mass, transform) in forces_query.iter_mut() {
-        force.0 = Vec3::new(0.0, 0.0, 0.0);
         for (source_gravity, source_mass, source_transform) in gravity_query.iter() {
-            let mut force_direction = source_transform.translation - transform.translation;
+            let mut force_direction =
+                (source_transform.translation - transform.translation).truncate();
             let distance = force_direction.length();
 
             if transform.translation == source_transform.translation {
@@ -76,4 +76,3 @@ fn force_update(
         }
     }
 }
-

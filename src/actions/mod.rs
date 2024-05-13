@@ -5,6 +5,7 @@ use bevy::window::PrimaryWindow;
 use crate::actions::game_control::{get_control_pressed, GameControl};
 use crate::player::Player;
 use crate::GameState;
+use crate::GameplaySet::InputHandling;
 
 mod game_control;
 
@@ -17,11 +18,14 @@ pub struct ActionsPlugin;
 impl Plugin for ActionsPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Actions>()
-            .init_resource::<MouseWorldCoords>()
+            .init_resource::<MouseCoords>()
             .add_systems(
-            Update,
-            set_movement_actions.run_if(in_state(GameState::Playing)),
-        );
+                Update,
+                (cursor_system, set_movement_actions)
+                    .chain()
+                    .run_if(in_state(GameState::Playing))
+                    .in_set(InputHandling),
+            );
     }
 }
 
@@ -33,7 +37,10 @@ pub struct Actions {
 }
 
 #[derive(Default, Resource)]
-pub struct MouseWorldCoords(Vec2);
+pub struct MouseCoords {
+    pub world_coords: Option<Vec2>,
+    pub logical_coords: Option<Vec2>,
+}
 
 pub fn set_movement_actions(
     mut actions: ResMut<Actions>,
@@ -41,8 +48,8 @@ pub fn set_movement_actions(
     mouse_input: Res<ButtonInput<MouseButton>>,
     touch_input: Res<Touches>,
     player: Query<&Transform, With<Player>>,
-    camera: Query<(&Camera, &GlobalTransform), With<Camera2d>>, 
-    mouse_world_coords: Res<MouseWorldCoords>,
+    camera: Query<(&Camera, &GlobalTransform), With<Camera2d>>,
+    mouse_world_coords: Res<MouseCoords>,
 ) {
     let mut player_movement = Vec2::new(
         get_control_pressed(GameControl::Right, &keyboard_input, &mouse_input)
@@ -53,7 +60,7 @@ pub fn set_movement_actions(
 
     if let Some(touch_position) = touch_input.first_pressed_position() {
         let (camera, camera_transform) = camera.single();
-        if let Some(touch_position) = camera.viewport_to_world_2d(camera_transform, touch_position) 
+        if let Some(touch_position) = camera.viewport_to_world_2d(camera_transform, touch_position)
         {
             let diff = touch_position - player.single().translation.xy();
             if diff.length() > FOLLOW_EPSILON {
@@ -81,24 +88,26 @@ pub fn set_movement_actions(
     } else {
         actions.camera_movement = None;
     }
-    
+
     // shoot action
     if GameControl::MainAttack.pressed(&keyboard_input, &mouse_input) {
-        actions.shoot = Some(mouse_world_coords.0);
+        actions.shoot = Some(mouse_world_coords.world_coords.unwrap());
+    } else {
+        actions.shoot = None;
     }
 }
 
 // todo: is our camera setup correctly?
 pub fn cursor_system(
-    mut coords: ResMut<MouseWorldCoords>,
+    mut coords: ResMut<MouseCoords>,
     q_window: Query<&Window, With<PrimaryWindow>>,
-    q_camera: Query<(&Camera, &GlobalTransform)>
+    q_camera: Query<(&Camera, &GlobalTransform)>,
 ) {
-    let (camera, camera_transform) = q_camera.single(); 
+    let (camera, camera_transform) = q_camera.single();
     let window = q_window.single();
-    
-    if let Some(world_position) = window.cursor_position()
-        .and_then(|cursor| camera.viewport_to_world_2d(camera_transform, cursor)) {
-        coords.0 = world_position;
+
+    if let Some(cursor_position) = window.cursor_position() {
+        coords.logical_coords = Some(cursor_position);
+        coords.world_coords = camera.viewport_to_world_2d(camera_transform, cursor_position);
     }
 }

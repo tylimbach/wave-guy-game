@@ -6,9 +6,10 @@ mod camera;
 mod enemy;
 mod gravity;
 mod loading;
+mod map;
 mod menu;
-mod player;
 mod movement;
+mod player;
 
 use crate::actions::ActionsPlugin;
 use crate::audio::InternalAudioPlugin;
@@ -16,9 +17,10 @@ use crate::camera::CameraPlugin as CustomCameraPlugin;
 use crate::enemy::EnemyPlugin;
 use crate::gravity::GravityPlugin;
 use crate::loading::LoadingPlugin;
+use crate::map::MapPlugin;
 use crate::menu::MenuPlugin;
-use crate::player::PlayerPlugin;
 use crate::movement::MovementPlugin;
+use crate::player::PlayerPlugin;
 
 use bevy::app::App;
 #[cfg(debug_assertions)]
@@ -45,6 +47,8 @@ enum GameplaySet {
     EnemyUpdate,
     Physics,
     PrePhysics,
+    InputHandling,
+    Collisions,
 }
 
 pub struct GamePlugin;
@@ -61,6 +65,7 @@ impl Plugin for GamePlugin {
             CustomCameraPlugin,
             // GravityPlugin,
             MovementPlugin,
+            MapPlugin,
         ));
 
         #[cfg(debug_assertions)]
@@ -69,10 +74,14 @@ impl Plugin for GamePlugin {
                 .configure_sets(
                     Update,
                     (
-                        GameplaySet::EnemyUpdate.after(GameplaySet::PlayerUpdate),
-                        GameplaySet::PrePhysics.after(GameplaySet::EnemyUpdate),
-                        GameplaySet::Physics.after(GameplaySet::PrePhysics),
-                    ),
+                        GameplaySet::InputHandling,
+                        GameplaySet::PlayerUpdate,
+                        GameplaySet::EnemyUpdate,
+                        GameplaySet::PrePhysics,
+                        GameplaySet::Physics,
+                        GameplaySet::Collisions,
+                    )
+                        .chain(),
                 );
         }
     }

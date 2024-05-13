@@ -7,14 +7,14 @@ pub enum GameControl {
     Right,
     ZoomIn,
     ZoomOut,
-    MainAttack
+    MainAttack,
 }
 
 impl GameControl {
     pub fn pressed(
         &self,
-        keyboard_input: &Res<ButtonInput<KeyCode>>, 
-        mouse_input: &Res<ButtonInput<MouseButton>>
+        keyboard_input: &Res<ButtonInput<KeyCode>>,
+        mouse_input: &Res<ButtonInput<MouseButton>>,
     ) -> bool {
         match self {
             GameControl::Up => {
