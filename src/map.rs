@@ -1,6 +1,7 @@
 use crate::movement::Velocity;
-use crate::{GameState, GameplaySet};
+use crate::{GameState, GameplaySet, ZLayer};
 use bevy::prelude::*;
+use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
 
 pub struct MapPlugin;
 
@@ -24,21 +25,17 @@ impl Plugin for MapPlugin {
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    let circle_radius = MAP_RADIUS; // Example radius
-
-    let circle_mesh = meshes.add(Circle {
-        radius: circle_radius,
-    });
+    let mesh = Mesh2dHandle(meshes.add(Circle { radius: MAP_RADIUS }));
     let material = materials.add(Color::rgb(0.0, 0.0, 0.0));
 
-    // Spawn the circle entity
+    // todo: precreate these resources
     commands
-        .spawn(PbrBundle {
-            mesh: circle_mesh,
+        .spawn(MaterialMesh2dBundle {
+            mesh,
             material,
-            transform: Transform::from_xyz(0.0, 0.0, 0.0), // Centered at the origin
+            transform: Transform::from_xyz(0.0, 0.0, ZLayer::Map.into()),
             ..default()
         })
         .insert(MapBoundary);
@@ -55,11 +52,9 @@ fn map_boundary_system(
     for (mut transform, mut velocity) in query.iter_mut() {
         let direction = transform.translation - boundary_position;
         if direction.length() > boundary_radius {
-            // Reflect the entity's velocity to "bounce" it back
             let normal = direction.normalize();
             transform.translation -= normal * ((direction.length() - boundary_radius) + 1.0); // Move entity back inside
             *velocity = Velocity(reflect_velocity(velocity.0.xy(), normal.xy()));
-            // Update the velocity of the entity (you'll need to define how velocity is managed)
         }
     }
 }

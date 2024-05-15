@@ -51,6 +51,23 @@ enum GameplaySet {
     Collisions,
 }
 
+#[repr(u8)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ZLayer {
+    Background = 0,
+    Map = 5,
+    Game = 10,
+    Character = 25,
+    Foreground = 50,
+    UI = 100,
+}
+
+impl From<ZLayer> for f32 {
+    fn from(layer: ZLayer) -> Self {
+        layer as u8 as f32
+    }
+}
+
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {

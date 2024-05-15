@@ -1,7 +1,7 @@
 use crate::actions::Actions;
 use crate::loading::TextureAssets;
 use crate::movement::{Mass, PhysicsBundle, Velocity};
-use crate::{GameState, GameplaySet};
+use crate::{GameState, GameplaySet, ZLayer};
 use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
 
@@ -28,7 +28,7 @@ fn spawn_player(mut commands: Commands, textures: Res<TextureAssets>) {
     commands
         .spawn(SpriteBundle {
             texture: textures.monster1.clone(),
-            transform: Transform::from_translation(Vec3::new(0., 0., 1.))
+            transform: Transform::from_translation(Vec3::new(0., 0., ZLayer::Character.into()))
                 .with_scale(Vec3::new(3., 3., 3.)),
             ..Default::default()
         })
@@ -71,6 +71,7 @@ fn shoot(
             let color = Color::hsl(0.5, 0.95, 0.7);
             let handle = Mesh2dHandle(meshes.add(Circle { radius: 10.0 }));
 
+            // todo: precreate these resources
             commands
                 .spawn(MaterialMesh2dBundle {
                     mesh: handle,

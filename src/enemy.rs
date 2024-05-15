@@ -1,7 +1,7 @@
 use crate::loading::TextureAssets;
 use crate::movement::{Mass, PhysicsBundle};
 use crate::player::Player;
-use crate::{GameState, GameplaySet};
+use crate::{GameState, GameplaySet, ZLayer};
 use bevy::prelude::*;
 use rand::prelude::*;
 
@@ -57,8 +57,11 @@ fn spawn_enemy(
             commands
                 .spawn(SpriteBundle {
                     texture: textures.monster1.clone(),
-                    transform: Transform::from_translation(Vec3::new(rand_x, rand_y, 1.))
-                        .with_scale(Vec3::new(1., 1., 1.)),
+                    transform: Transform::from_translation(Vec3::new(
+                        rand_x,
+                        rand_y,
+                        f32::from(ZLayer::Character) + 1.0,
+                    )),
                     ..Default::default()
                 })
                 .insert(Enemy)
