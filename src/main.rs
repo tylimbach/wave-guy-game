@@ -1,6 +1,7 @@
 // disable console on windows for release builds
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use bevy::window::WindowResolution;
 use bevy::{
     asset::AssetMetaCheck,
     prelude::*,
@@ -27,6 +28,7 @@ fn main() {
                 // Tells wasm not to override default event handling, like F5 and Ctrl+R
                 prevent_default_event_handling: false,
                 present_mode: bevy::window::PresentMode::AutoNoVsync,
+                resolution: WindowResolution::new(1600.0, 1200.0),
                 ..default()
             }),
             ..default()

@@ -28,7 +28,7 @@ fn setup(
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     let mesh = Mesh2dHandle(meshes.add(Circle { radius: MAP_RADIUS }));
-    let material = materials.add(Color::rgb(0.0, 0.0, 0.0));
+    let material = materials.add(Color::rgb(1.0, 1.0, 1.0));
 
     // todo: precreate these resources
     commands

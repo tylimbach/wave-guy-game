@@ -1,7 +1,4 @@
-use crate::enemy::Enemy;
-use crate::player::Bullet;
 use crate::{actions::Actions, player::Player, GameState, GameplaySet};
-use bevy::math::bounding::{Aabb2d, BoundingCircle, BoundingVolume, IntersectsVolume};
 use bevy::prelude::*;
 
 pub struct MovementPlugin;
@@ -18,16 +15,12 @@ pub struct Force(pub Vec2);
 #[derive(Component)]
 pub struct Mass(pub f32);
 
-#[derive(Component)]
-pub struct Collidable;
-
 #[derive(Bundle)]
 pub struct PhysicsBundle {
     pub force: Force,
     pub mass: Mass,
     pub acceleration: Acceleration,
     pub velocity: Velocity,
-    pub collidable: Collidable,
 }
 
 impl Default for PhysicsBundle {
@@ -37,14 +30,13 @@ impl Default for PhysicsBundle {
             mass: Mass(100.),
             acceleration: Acceleration::default(),
             velocity: Velocity::default(),
-            collidable: Collidable {},
         }
     }
 }
 
 impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<CollisionEvent>().add_systems(
+        app.add_systems(
             Update,
             (
                 apply_input_velocity,
@@ -71,17 +63,6 @@ fn apply_input_velocity(
     for mut velocity in player_query.iter_mut() {
         velocity.0 = movement_dir * base_player_speed;
     }
-}
-
-#[derive(Event, Default)]
-struct CollisionEvent;
-
-fn detect_collisions(
-    mut commands: Commands,
-    bullet_query: Query<(&mut Velocity, &Transform), With<Bullet>>,
-    collider_query: Query<(Entity, &Transform), (With<Collidable>, Without<Bullet>, With<Enemy>)>,
-    mut collision_events: EventWriter<CollisionEvent>,
-) {
 }
 
 fn acceleration_update(mut acceleration_query: Query<(&mut Acceleration, &Force, &Mass)>) {

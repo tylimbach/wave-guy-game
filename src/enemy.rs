@@ -1,7 +1,10 @@
+use crate::collision::{Collider, CollisionLayer, HitBox};
 use crate::loading::TextureAssets;
+use crate::map::MAP_RADIUS;
 use crate::movement::{Mass, PhysicsBundle};
 use crate::player::Player;
 use crate::{GameState, GameplaySet, ZLayer};
+use bevy::math::bounding::Aabb2d;
 use bevy::prelude::*;
 use rand::prelude::*;
 
@@ -46,17 +49,27 @@ fn spawn_enemy(
     textures: Res<TextureAssets>,
     time: Res<Time>,
     mut spawner_query: Query<&mut Spawner>,
+    image_assets: Res<Assets<Image>>,
 ) {
     // could cache this
     let mut rng = rand::thread_rng();
     for mut spawner in spawner_query.iter_mut() {
         spawner.timer.tick(time.delta());
         if spawner.timer.finished() {
-            let rand_x = rng.gen_range(-1000.0..1000.0);
-            let rand_y = rng.gen_range(-1000.0..1000.0);
+            let rand_x = rng.gen_range(-MAP_RADIUS..MAP_RADIUS);
+            let rand_y = rng.gen_range(-MAP_RADIUS..MAP_RADIUS);
+            let texture = textures.monster1.clone();
+            let Some(image_data) = image_assets.get(texture.clone()) else {
+                panic!("Failed to get image data for enemy spawn");
+            };
+            let size = Vec2::new(
+                image_data.texture_descriptor.size.width as f32,
+                image_data.texture_descriptor.size.height as f32,
+            );
+
             commands
                 .spawn(SpriteBundle {
-                    texture: textures.monster1.clone(),
+                    texture,
                     transform: Transform::from_translation(Vec3::new(
                         rand_x,
                         rand_y,
@@ -68,7 +81,8 @@ fn spawn_enemy(
                 .insert(PhysicsBundle {
                     mass: Mass(5.),
                     ..default()
-                });
+                })
+                .insert(Collider::new_aabb(CollisionLayer::Enemy, size / 2.0));
         }
     }
 }

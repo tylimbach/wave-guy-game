@@ -3,6 +3,7 @@
 mod actions;
 mod audio;
 mod camera;
+mod collision;
 mod enemy;
 mod gravity;
 mod loading;
@@ -14,6 +15,7 @@ mod player;
 use crate::actions::ActionsPlugin;
 use crate::audio::InternalAudioPlugin;
 use crate::camera::CameraPlugin as CustomCameraPlugin;
+use crate::collision::CollisionPlugin;
 use crate::enemy::EnemyPlugin;
 use crate::gravity::GravityPlugin;
 use crate::loading::LoadingPlugin;
@@ -83,6 +85,7 @@ impl Plugin for GamePlugin {
             // GravityPlugin,
             MovementPlugin,
             MapPlugin,
+            CollisionPlugin,
         ));
 
         #[cfg(debug_assertions)]
