@@ -3,13 +3,7 @@
 
 use bevy::window::WindowResolution;
 use bevy::{
-    asset::AssetMetaCheck,
-    prelude::*,
-    reflect::TypePath,
-    render::render_resource::{AsBindGroup, ShaderRef},
-    window::PrimaryWindow,
-    winit::WinitWindows,
-    DefaultPlugins,
+    asset::AssetMetaCheck, prelude::*, window::PrimaryWindow, winit::WinitWindows, DefaultPlugins,
 };
 use std::io::Cursor;
 use wave_guy::GamePlugin;

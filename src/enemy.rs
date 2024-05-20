@@ -1,10 +1,9 @@
-use crate::collision::{Collider, CollisionLayer, HitBox};
+use crate::collision::{Collider, CollisionLayer};
 use crate::loading::TextureAssets;
 use crate::map::MAP_RADIUS;
 use crate::movement::{Mass, PhysicsBundle};
 use crate::player::Player;
 use crate::{GameState, GameplaySet, ZLayer};
-use bevy::math::bounding::Aabb2d;
 use bevy::prelude::*;
 use rand::prelude::*;
 

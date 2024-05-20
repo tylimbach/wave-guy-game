@@ -1,3 +1,5 @@
+#![allow(unused)] // todo: remove eventually
+
 use crate::actions::Actions;
 use crate::collision::{Collider, CollisionLayer};
 use crate::loading::TextureAssets;
@@ -64,6 +66,7 @@ pub struct Bullet {
     damage: f32,
 }
 
+/*
 #[derive(Component)]
 #[component(storage = "SparseSet")]
 pub struct SpawnPosition(Vec3);
@@ -71,6 +74,7 @@ pub struct SpawnPosition(Vec3);
 #[derive(Component)]
 #[component(storage = "SparseSet")]
 pub struct LifeTime(Timer);
+*/
 
 fn shoot(
     mut commands: Commands,
@@ -83,31 +87,29 @@ fn shoot(
     let damage = 20.;
 
     if let Some(shoot_coord) = actions.shoot {
-        if let player_transform = player_query.single() {
-            let direction_vec =
-                (shoot_coord - player_transform.translation().truncate()).normalize();
-            let velocity_vec = direction_vec * bullet_speed;
-            let color = Color::hsl(0.5, 0.95, 0.7);
-            let handle = Mesh2dHandle(meshes.add(Circle::new(BULLET_RADIUS)));
+        let player_transform = player_query.single();
+        let direction_vec = (shoot_coord - player_transform.translation().truncate()).normalize();
+        let velocity_vec = direction_vec * bullet_speed;
+        let color = Color::hsl(0.5, 0.95, 0.7);
+        let handle = Mesh2dHandle(meshes.add(Circle::new(BULLET_RADIUS)));
 
-            // todo: precreate these resources
-            commands
-                .spawn(MaterialMesh2dBundle {
-                    mesh: handle,
-                    transform: Transform::from_translation(player_transform.translation()),
-                    material: materials.add(color),
-                    ..default()
-                })
-                .insert(Bullet { damage })
-                .insert(PhysicsBundle {
-                    mass: Mass(10.),
-                    velocity: Velocity(velocity_vec),
-                    ..default()
-                })
-                .insert(Collider::new_circle(
-                    CollisionLayer::PlayerProjectile,
-                    BULLET_RADIUS,
-                ));
-        }
+        // todo: precreate these resources
+        commands
+            .spawn(MaterialMesh2dBundle {
+                mesh: handle,
+                transform: Transform::from_translation(player_transform.translation()),
+                material: materials.add(color),
+                ..default()
+            })
+            .insert(Bullet { damage })
+            .insert(PhysicsBundle {
+                mass: Mass(10.),
+                velocity: Velocity(velocity_vec),
+                ..default()
+            })
+            .insert(Collider::new_circle(
+                CollisionLayer::PlayerProjectile,
+                BULLET_RADIUS,
+            ));
     }
 }

@@ -17,7 +17,6 @@ use crate::audio::InternalAudioPlugin;
 use crate::camera::CameraPlugin as CustomCameraPlugin;
 use crate::collision::CollisionPlugin;
 use crate::enemy::EnemyPlugin;
-use crate::gravity::GravityPlugin;
 use crate::loading::LoadingPlugin;
 use crate::map::MapPlugin;
 use crate::menu::MenuPlugin;
@@ -55,6 +54,7 @@ enum GameplaySet {
 
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(unused)]
 enum ZLayer {
     Background = 0,
     Map = 5,

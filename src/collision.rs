@@ -25,12 +25,8 @@ pub enum HitBox {
     Aabb(Aabb2d),
 }
 
-pub enum HitBoxShape {
-    Circle,
-    Aabb,
-}
-
 #[derive(Event)]
+#[allow(unused)]
 struct CollisionEvent {
     entity1: Entity,
     entity2: Entity,
@@ -61,6 +57,7 @@ impl Collider {
     }
 }
 
+#[allow(unused)]
 pub enum CollisionLayer {
     Player,
     Enemy,
@@ -70,13 +67,16 @@ pub enum CollisionLayer {
 
 impl CollisionLayer {
     fn should_collide(&self, other: &CollisionLayer) -> bool {
-        match (self, other) {
-            (CollisionLayer::PlayerProjectile, CollisionLayer::Enemy) => true,
-            (CollisionLayer::Enemy, CollisionLayer::PlayerProjectile) => true,
-            (CollisionLayer::EnemyProjectile, CollisionLayer::Player) => true,
-            (CollisionLayer::EnemyProjectile, CollisionLayer::EnemyProjectile) => true,
-            _ => false,
-        }
+        matches!(
+            (self, other),
+            (CollisionLayer::PlayerProjectile, CollisionLayer::Enemy)
+                | (CollisionLayer::Enemy, CollisionLayer::PlayerProjectile)
+                | (CollisionLayer::EnemyProjectile, CollisionLayer::Player)
+                | (
+                    CollisionLayer::EnemyProjectile,
+                    CollisionLayer::EnemyProjectile
+                )
+        )
     }
 }
 
@@ -96,7 +96,6 @@ impl HitBox {
             (HitBox::Circle(c), HitBox::Aabb(a)) | (HitBox::Aabb(a), HitBox::Circle(c)) => {
                 c.intersects(a)
             }
-            _ => false,
         }
     }
 }
@@ -123,13 +122,13 @@ fn update_hitbox_positions(mut collider_query: Query<(&Transform, &mut Collider)
 }
 
 fn detect_collisions(
-    collider_query: Query<(Entity, &Transform, &Collider)>,
+    collider_query: Query<(Entity, &Collider)>,
     mut collision_events: EventWriter<CollisionEvent>,
 ) {
     let entities: Vec<_> = collider_query.iter().collect();
 
-    for (i, (entity1, &transform, collider1)) in entities.iter().enumerate() {
-        for (entity2, &transform, collider2) in entities.iter().skip(i + 1) {
+    for (i, (entity1, collider1)) in entities.iter().enumerate() {
+        for (entity2, collider2) in entities.iter().skip(i + 1) {
             if collider1.layer.should_collide(&collider2.layer)
                 && collider1.hit_box.intersects(&collider2.hit_box)
             {

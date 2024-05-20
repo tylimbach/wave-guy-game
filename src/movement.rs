@@ -59,7 +59,7 @@ fn apply_input_velocity(
     }
 
     let base_player_speed = 100.0;
-    let movement_dir = actions.player_movement.unwrap_or_else(|| Vec2::ZERO);
+    let movement_dir = actions.player_movement.unwrap_or(Vec2::ZERO);
     for mut velocity in player_query.iter_mut() {
         velocity.0 = movement_dir * base_player_speed;
     }
