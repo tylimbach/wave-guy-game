@@ -1,7 +1,9 @@
-use crate::gravity::{Mass, PhysicsBundle};
+use crate::collision::{Collider, CollisionLayer};
 use crate::loading::TextureAssets;
+use crate::map::MAP_RADIUS;
+use crate::movement::{Mass, PhysicsBundle};
 use crate::player::Player;
-use crate::{GameState, GameplaySet};
+use crate::{GameState, GameplaySet, ZLayer};
 use bevy::prelude::*;
 use rand::prelude::*;
 
@@ -46,26 +48,40 @@ fn spawn_enemy(
     textures: Res<TextureAssets>,
     time: Res<Time>,
     mut spawner_query: Query<&mut Spawner>,
+    image_assets: Res<Assets<Image>>,
 ) {
     // could cache this
     let mut rng = rand::thread_rng();
     for mut spawner in spawner_query.iter_mut() {
         spawner.timer.tick(time.delta());
         if spawner.timer.finished() {
-            let rand_x = rng.gen_range(-1000.0..1000.0);
-            let rand_y = rng.gen_range(-1000.0..1000.0);
+            let rand_x = rng.gen_range(-MAP_RADIUS..MAP_RADIUS);
+            let rand_y = rng.gen_range(-MAP_RADIUS..MAP_RADIUS);
+            let texture = textures.monster1.clone();
+            let Some(image_data) = image_assets.get(texture.clone()) else {
+                panic!("Failed to get image data for enemy spawn");
+            };
+            let size = Vec2::new(
+                image_data.texture_descriptor.size.width as f32,
+                image_data.texture_descriptor.size.height as f32,
+            );
+
             commands
                 .spawn(SpriteBundle {
-                    texture: textures.monster1.clone(),
-                    transform: Transform::from_translation(Vec3::new(rand_x, rand_y, 1.))
-                        .with_scale(Vec3::new(1., 1., 1.)),
+                    texture,
+                    transform: Transform::from_translation(Vec3::new(
+                        rand_x,
+                        rand_y,
+                        f32::from(ZLayer::Character) + 1.0,
+                    )),
                     ..Default::default()
                 })
                 .insert(Enemy)
                 .insert(PhysicsBundle {
                     mass: Mass(5.),
                     ..default()
-                });
+                })
+                .insert(Collider::new_aabb(CollisionLayer::Enemy, size / 2.0));
         }
     }
 }

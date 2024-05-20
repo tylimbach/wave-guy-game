@@ -3,19 +3,24 @@
 mod actions;
 mod audio;
 mod camera;
+mod collision;
 mod enemy;
 mod gravity;
 mod loading;
+mod map;
 mod menu;
+mod movement;
 mod player;
 
 use crate::actions::ActionsPlugin;
 use crate::audio::InternalAudioPlugin;
 use crate::camera::CameraPlugin as CustomCameraPlugin;
+use crate::collision::CollisionPlugin;
 use crate::enemy::EnemyPlugin;
-use crate::gravity::GravityPlugin;
 use crate::loading::LoadingPlugin;
+use crate::map::MapPlugin;
 use crate::menu::MenuPlugin;
+use crate::movement::MovementPlugin;
 use crate::player::PlayerPlugin;
 
 use bevy::app::App;
@@ -42,6 +47,27 @@ enum GameplaySet {
     PlayerUpdate,
     EnemyUpdate,
     Physics,
+    PrePhysics,
+    InputHandling,
+    Collisions,
+}
+
+#[repr(u8)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(unused)]
+enum ZLayer {
+    Background = 0,
+    Map = 5,
+    Game = 10,
+    Character = 25,
+    Foreground = 50,
+    UI = 100,
+}
+
+impl From<ZLayer> for f32 {
+    fn from(layer: ZLayer) -> Self {
+        layer as u8 as f32
+    }
 }
 
 pub struct GamePlugin;
@@ -56,7 +82,10 @@ impl Plugin for GamePlugin {
             PlayerPlugin,
             EnemyPlugin,
             CustomCameraPlugin,
-            GravityPlugin,
+            // GravityPlugin,
+            MovementPlugin,
+            MapPlugin,
+            CollisionPlugin,
         ));
 
         #[cfg(debug_assertions)]
@@ -65,9 +94,14 @@ impl Plugin for GamePlugin {
                 .configure_sets(
                     Update,
                     (
-                        GameplaySet::EnemyUpdate.after(GameplaySet::PlayerUpdate),
-                        GameplaySet::Physics.after(GameplaySet::EnemyUpdate),
-                    ),
+                        GameplaySet::InputHandling,
+                        GameplaySet::PlayerUpdate,
+                        GameplaySet::EnemyUpdate,
+                        GameplaySet::PrePhysics,
+                        GameplaySet::Physics,
+                        GameplaySet::Collisions,
+                    )
+                        .chain(),
                 );
         }
     }
