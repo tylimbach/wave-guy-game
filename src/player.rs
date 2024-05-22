@@ -1,5 +1,6 @@
 #![allow(unused)] // todo: remove eventually
 
+use std::time::Duration;
 use crate::actions::Actions;
 use crate::collision::{Collider, CollisionLayer};
 use crate::loading::TextureAssets;
@@ -7,6 +8,7 @@ use crate::movement::{Mass, PhysicsBundle, Velocity};
 use crate::{GameState, GameplaySet, ZLayer};
 use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
+use bevy::utils::info;
 
 pub const BULLET_RADIUS: f32 = 10.0;
 
@@ -57,12 +59,24 @@ fn spawn_player(
             mass: Mass(10.),
             ..default()
         })
-        .insert(Collider::new_aabb(CollisionLayer::Player, size / 2.0));
+        .insert(Collider::new_aabb(CollisionLayer::Player, size / 2.0))
+        .insert(Weapon {
+            timer: Timer::new(Duration::from_millis(500), TimerMode::Once),
+            speed: 300.0,
+            damage: 50.0,
+        });
 }
 
 #[derive(Component)]
 #[component(storage = "SparseSet")]
 pub struct Bullet {
+    damage: f32,
+}
+
+#[derive(Component)]
+pub struct Weapon {
+    timer: Timer,
+    speed: f32,
     damage: f32,
 }
 
@@ -81,35 +95,39 @@ fn shoot(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     actions: Res<Actions>,
-    player_query: Query<&GlobalTransform, With<Player>>,
+    mut player_query: Query<(&GlobalTransform, &mut Weapon), With<Player>>,
+    time: Res<Time>, 
 ) {
-    let bullet_speed = 350.;
-    let damage = 20.;
-
+    let (player_transform, mut weapon) = player_query.single_mut();
+    weapon.timer.tick(time.delta());
+    
     if let Some(shoot_coord) = actions.shoot {
-        let player_transform = player_query.single();
-        let direction_vec = (shoot_coord - player_transform.translation().truncate()).normalize();
-        let velocity_vec = direction_vec * bullet_speed;
-        let color = Color::hsl(0.5, 0.95, 0.7);
-        let handle = Mesh2dHandle(meshes.add(Circle::new(BULLET_RADIUS)));
+        if weapon.timer.finished() {
+            let direction_vec = (shoot_coord - player_transform.translation().truncate()).normalize();
+            let velocity_vec = direction_vec * weapon.speed;
+            let color = Color::hsl(0.5, 0.95, 0.7);
+            let handle = Mesh2dHandle(meshes.add(Circle::new(BULLET_RADIUS)));
 
-        // todo: precreate these resources
-        commands
-            .spawn(MaterialMesh2dBundle {
-                mesh: handle,
-                transform: Transform::from_translation(player_transform.translation()),
-                material: materials.add(color),
-                ..default()
-            })
-            .insert(Bullet { damage })
-            .insert(PhysicsBundle {
-                mass: Mass(10.),
-                velocity: Velocity(velocity_vec),
-                ..default()
-            })
-            .insert(Collider::new_circle(
-                CollisionLayer::PlayerProjectile,
-                BULLET_RADIUS,
-            ));
+            // todo: precreate these resources
+            commands
+                .spawn(MaterialMesh2dBundle {
+                    mesh: handle,
+                    transform: Transform::from_translation(player_transform.translation()),
+                    material: materials.add(color),
+                    ..default()
+                })
+                .insert(Bullet { damage: weapon.damage })
+                .insert(PhysicsBundle {
+                    mass: Mass(10.),
+                    velocity: Velocity(velocity_vec),
+                    ..default()
+                })
+                .insert(Collider::new_circle(
+                    CollisionLayer::PlayerProjectile,
+                    BULLET_RADIUS,
+                ));
+            
+            weapon.timer.reset();
+        }
     }
 }
