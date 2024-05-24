@@ -2,13 +2,14 @@
 
 use std::time::Duration;
 use crate::actions::Actions;
-use crate::collision::{Collider, CollisionLayer};
+use crate::collision::{Collider, CollisionEvent, CollisionLayer};
 use crate::loading::TextureAssets;
 use crate::movement::{Mass, PhysicsBundle, Velocity};
 use crate::{GameState, GameplaySet, ZLayer};
 use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
 use bevy::utils::info;
+use bevy::utils::petgraph::visit::Walker;
 
 pub const BULLET_RADIUS: f32 = 10.0;
 
@@ -24,7 +25,7 @@ impl Plugin for PlayerPlugin {
         app.add_systems(OnEnter(GameState::Playing), spawn_player)
             .add_systems(
                 Update,
-                shoot
+                (shoot, handle_bullet_collision)
                     .in_set(GameplaySet::PlayerUpdate)
                     .run_if(in_state(GameState::Playing)),
             );
@@ -69,7 +70,8 @@ fn spawn_player(
 
 #[derive(Component)]
 #[component(storage = "SparseSet")]
-pub struct Bullet {
+pub struct Bullet { 
+    owner: Entity,
     damage: f32,
 }
 
@@ -83,7 +85,6 @@ pub struct Weapon {
 /*
 #[derive(Component)]
 #[component(storage = "SparseSet")]
-pub struct SpawnPosition(Vec3);
 
 #[derive(Component)]
 #[component(storage = "SparseSet")]
@@ -95,10 +96,10 @@ fn shoot(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     actions: Res<Actions>,
-    mut player_query: Query<(&GlobalTransform, &mut Weapon), With<Player>>,
+    mut player_query: Query<(&GlobalTransform, &mut Weapon, Entity), With<Player>>,
     time: Res<Time>, 
 ) {
-    let (player_transform, mut weapon) = player_query.single_mut();
+    let (player_transform, mut weapon, player_entity) = player_query.single_mut();
     weapon.timer.tick(time.delta());
     
     if let Some(shoot_coord) = actions.shoot {
@@ -116,7 +117,10 @@ fn shoot(
                     material: materials.add(color),
                     ..default()
                 })
-                .insert(Bullet { damage: weapon.damage })
+                .insert(Bullet { 
+                    owner: player_entity,
+                    damage: weapon.damage 
+                })
                 .insert(PhysicsBundle {
                     mass: Mass(10.),
                     velocity: Velocity(velocity_vec),
@@ -129,5 +133,28 @@ fn shoot(
             
             weapon.timer.reset();
         }
+    }
+}
+
+fn handle_bullet_collision(
+    mut bullet_query: Query<(&mut Velocity, &GlobalTransform, &Bullet)>,
+    mut collision_events: EventReader<CollisionEvent>,
+) {
+    for e in collision_events.read() {
+        let Ok((mut velocity1, mut transform1, bullet1)) = bullet_query.get_mut(e.entity1) else {
+            continue;
+        };
+        let Ok((mut velocity2, mut transform2, bullet2)) = bullet_query.get_mut(e.entity2) else {
+            continue;
+        };
+        
+        let normal = e.normal;
+        let velocity1_reflected = e.velocity1 - 2.0 * e.velocity1.dot(normal) * normal;
+        let velocity2_reflected = e.velocity2 - 2.0 * e.velocity2.dot(normal) * normal;
+        
+        velocity1.0 = velocity1_reflected;
+        velocity2.0 = velocity2_reflected;
+            
+        // todo: move bullets apart to avoid overlap?
     }
 }

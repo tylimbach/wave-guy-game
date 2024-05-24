@@ -1,6 +1,7 @@
 use crate::{GameState, GameplaySet};
 use bevy::math::bounding::{Aabb2d, BoundingCircle, BoundingVolume, IntersectsVolume};
 use bevy::prelude::*;
+use crate::movement::Velocity;
 
 pub struct CollisionPlugin;
 
@@ -27,9 +28,12 @@ pub enum HitBox {
 
 #[derive(Event)]
 #[allow(unused)]
-struct CollisionEvent {
-    entity1: Entity,
-    entity2: Entity,
+pub struct CollisionEvent {
+    pub entity1: Entity,
+    pub entity2: Entity,
+    pub velocity1: Vec2,
+    pub velocity2: Vec2,
+    pub normal: Vec2,
 }
 
 #[derive(Component)]
@@ -122,19 +126,23 @@ fn update_hitbox_positions(mut collider_query: Query<(&Transform, &mut Collider)
 }
 
 fn detect_collisions(
-    collider_query: Query<(Entity, &Collider)>,
+    collider_query: Query<(Entity, &Collider, &Transform, &Velocity)>,
     mut collision_events: EventWriter<CollisionEvent>,
 ) {
     let entities: Vec<_> = collider_query.iter().collect();
 
-    for (i, (entity1, collider1)) in entities.iter().enumerate() {
-        for (entity2, collider2) in entities.iter().skip(i + 1) {
+    for (i, (entity1, collider1, transform1, velocity1)) in entities.iter().enumerate() {
+        for (entity2, collider2, transform2, velocity2) in entities.iter().skip(i + 1) {
             if collider1.layer.should_collide(&collider2.layer)
                 && collider1.hit_box.intersects(&collider2.hit_box)
             {
+                let normal = (transform2.translation.xy() - transform1.translation.xy()).normalize();
                 collision_events.send(CollisionEvent {
                     entity1: *entity1,
                     entity2: *entity2,
+                    velocity1: velocity1.0,
+                    velocity2: velocity2.0,
+                    normal
                 });
             }
         }

@@ -59,6 +59,6 @@ fn map_boundary_system(
     }
 }
 
-fn reflect_velocity(velocity: Vec2, normal: Vec2) -> Vec2 {
+pub fn reflect_velocity(velocity: Vec2, normal: Vec2) -> Vec2 {
     velocity - 2.0 * velocity.dot(normal) * normal
 }
