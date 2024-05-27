@@ -62,8 +62,8 @@ fn spawn_player(
         })
         .insert(Collider::new_aabb(CollisionLayer::Player, size / 2.0))
         .insert(Weapon {
-            timer: Timer::new(Duration::from_millis(500), TimerMode::Once),
-            speed: 300.0,
+            timer: Timer::new(Duration::from_millis(200), TimerMode::Once),
+            speed: 1000.0,
             damage: 50.0,
         });
 }
@@ -137,24 +137,29 @@ fn shoot(
 }
 
 fn handle_bullet_collision(
-    mut bullet_query: Query<(&mut Velocity, &GlobalTransform, &Bullet)>,
+    mut bullet_query: Query<(&mut Velocity, &mut Transform, &Bullet)>,
     mut collision_events: EventReader<CollisionEvent>,
 ) {
     for e in collision_events.read() {
-        let Ok((mut velocity1, mut transform1, bullet1)) = bullet_query.get_mut(e.entity1) else {
-            continue;
-        };
-        let Ok((mut velocity2, mut transform2, bullet2)) = bullet_query.get_mut(e.entity2) else {
-            continue;
-        };
-        
-        let normal = e.normal;
-        let velocity1_reflected = e.velocity1 - 2.0 * e.velocity1.dot(normal) * normal;
-        let velocity2_reflected = e.velocity2 - 2.0 * e.velocity2.dot(normal) * normal;
-        
-        velocity1.0 = velocity1_reflected;
-        velocity2.0 = velocity2_reflected;
-            
-        // todo: move bullets apart to avoid overlap?
+        assert_ne!(e.entity1, e.entity2);
+        unsafe {
+            let Ok((mut velocity1, mut transform1, bullet1)) = bullet_query.get_unchecked(e.entity1) else {
+                continue;
+            };
+            let Ok((mut velocity2, mut transform2, bullet2)) = bullet_query.get_unchecked(e.entity2) else {
+                continue;
+            };
+
+            let normal = e.normal;
+            let velocity1_reflected = e.velocity1 - 2.0 * e.velocity1.dot(normal) * normal;
+            let velocity2_reflected = e.velocity2 - 2.0 * e.velocity2.dot(normal) * normal;
+
+            velocity1.0 = velocity1_reflected;
+            velocity2.0 = velocity2_reflected;
+
+            // todo: move bullets apart to avoid overlap?
+            transform1.translation -= (normal * BULLET_RADIUS / 2.0).extend(0.0);
+            transform2.translation += (normal * BULLET_RADIUS / 2.0).extend(0.0);
+        }
     }
 }

@@ -5,7 +5,7 @@ use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
 
 pub struct MapPlugin;
 
-pub const MAP_RADIUS: f32 = 3000.0;
+pub const MAP_RADIUS: f32 = 1500.0;
 
 #[derive(Component)]
 pub struct MapBoundary;

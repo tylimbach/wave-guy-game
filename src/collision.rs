@@ -8,7 +8,7 @@ pub struct CollisionPlugin;
 impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<CollisionEvent>().add_systems(
-            PostUpdate,
+            Update,
             (
                 update_hitbox_positions,
                 render_hitbox_gizmos, // todo: toggleable/debug
@@ -76,10 +76,8 @@ impl CollisionLayer {
             (CollisionLayer::PlayerProjectile, CollisionLayer::Enemy)
                 | (CollisionLayer::Enemy, CollisionLayer::PlayerProjectile)
                 | (CollisionLayer::EnemyProjectile, CollisionLayer::Player)
-                | (
-                    CollisionLayer::EnemyProjectile,
-                    CollisionLayer::EnemyProjectile
-                )
+                | (CollisionLayer::Player, CollisionLayer::EnemyProjectile)
+                | (CollisionLayer::PlayerProjectile, CollisionLayer::PlayerProjectile) // temp
         )
     }
 }
