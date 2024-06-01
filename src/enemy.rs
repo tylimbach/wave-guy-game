@@ -72,7 +72,7 @@ fn spawn_enemy(
                     transform: Transform::from_translation(Vec3::new(
                         rand_x,
                         rand_y,
-                        f32::from(ZLayer::Character) + 1.0,
+                        f32::from(ZLayer::Character) - 1.0,
                     )),
                     ..Default::default()
                 })

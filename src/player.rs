@@ -12,6 +12,7 @@ use bevy::utils::info;
 use bevy::utils::petgraph::visit::Walker;
 
 pub const BULLET_RADIUS: f32 = 10.0;
+pub const BULLET_DURATION_MS: u64 = 2000;
 
 pub struct PlayerPlugin;
 
@@ -25,7 +26,8 @@ impl Plugin for PlayerPlugin {
         app.add_systems(OnEnter(GameState::Playing), spawn_player)
             .add_systems(
                 Update,
-                (shoot, handle_bullet_collision)
+                (despawn_timed_objects, shoot, handle_bullet_collision)
+                    .chain()
                     .in_set(GameplaySet::PlayerUpdate)
                     .run_if(in_state(GameState::Playing)),
             );
@@ -62,14 +64,13 @@ fn spawn_player(
         })
         .insert(Collider::new_aabb(CollisionLayer::Player, size / 2.0))
         .insert(Weapon {
-            timer: Timer::new(Duration::from_millis(200), TimerMode::Once),
+            timer: Timer::new(Duration::from_millis(50), TimerMode::Once),
             speed: 1000.0,
             damage: 50.0,
         });
 }
 
 #[derive(Component)]
-#[component(storage = "SparseSet")]
 pub struct Bullet { 
     owner: Entity,
     damage: f32,
@@ -82,14 +83,15 @@ pub struct Weapon {
     damage: f32,
 }
 
-/*
 #[derive(Component)]
-#[component(storage = "SparseSet")]
+pub struct SpawnLocation {
+    xy: Vec2
+}
 
 #[derive(Component)]
-#[component(storage = "SparseSet")]
-pub struct LifeTime(Timer);
-*/
+pub struct LifeSpan {
+    timer: Timer
+}
 
 fn shoot(
     mut commands: Commands,
@@ -129,9 +131,29 @@ fn shoot(
                 .insert(Collider::new_circle(
                     CollisionLayer::PlayerProjectile,
                     BULLET_RADIUS,
-                ));
+                ))
+                .insert(LifeSpan {
+                    timer: Timer::new(Duration::from_millis(BULLET_DURATION_MS), TimerMode::Once)
+                });
             
             weapon.timer.reset();
+        }
+    }
+}
+
+fn despawn_timed_objects(
+    mut commands: Commands,
+    mut query: Query<(Entity, &mut LifeSpan)>,
+    time: Res<Time>,
+) {
+    for (entity, mut lifespan) in query.iter_mut() {
+        lifespan.timer.tick(time.delta());
+        if lifespan.timer.finished() {
+            if let Some(mut entity_commands) = commands.get_entity(entity) {
+                entity_commands.despawn();        
+            } else {
+                error!("Error getting entity to despawn");
+            }
         }
     }
 }
