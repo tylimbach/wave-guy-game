@@ -1,7 +1,7 @@
+use crate::movement::Velocity;
 use crate::{GameState, GameplaySet};
 use bevy::math::bounding::{Aabb2d, BoundingCircle, BoundingVolume, IntersectsVolume};
 use bevy::prelude::*;
-use crate::movement::Velocity;
 
 pub struct CollisionPlugin;
 
@@ -77,7 +77,10 @@ impl CollisionLayer {
                 | (CollisionLayer::Enemy, CollisionLayer::PlayerProjectile)
                 | (CollisionLayer::EnemyProjectile, CollisionLayer::Player)
                 | (CollisionLayer::Player, CollisionLayer::EnemyProjectile)
-                | (CollisionLayer::PlayerProjectile, CollisionLayer::PlayerProjectile) // temp
+                | (
+                    CollisionLayer::PlayerProjectile,
+                    CollisionLayer::PlayerProjectile
+                ) // temp
         )
     }
 }
@@ -134,13 +137,14 @@ fn detect_collisions(
             if collider1.layer.should_collide(&collider2.layer)
                 && collider1.hit_box.intersects(&collider2.hit_box)
             {
-                let normal = (transform2.translation.xy() - transform1.translation.xy()).normalize();
+                let normal =
+                    (transform2.translation.xy() - transform1.translation.xy()).normalize();
                 collision_events.send(CollisionEvent {
                     entity1: *entity1,
                     entity2: *entity2,
                     velocity1: velocity1.0,
                     velocity2: velocity2.0,
-                    normal
+                    normal,
                 });
             }
         }

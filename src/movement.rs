@@ -55,6 +55,8 @@ fn apply_input_velocity(
     mut player_query: Query<&mut Velocity, With<Player>>,
 ) {
     if actions.player_movement.is_none() {
+        let mut velocity = player_query.single_mut();
+        velocity.0 = Vec2::ZERO;
         return;
     }
 

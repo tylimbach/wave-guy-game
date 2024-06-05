@@ -1,8 +1,8 @@
 #![allow(unused)] // todo: remove eventually
 
-use std::time::Duration;
 use crate::actions::Actions;
 use crate::collision::{Collider, CollisionEvent, CollisionLayer};
+use crate::enemy::Enemy;
 use crate::loading::TextureAssets;
 use crate::movement::{Mass, PhysicsBundle, Velocity};
 use crate::{GameState, GameplaySet, ZLayer};
@@ -10,6 +10,7 @@ use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
 use bevy::utils::info;
 use bevy::utils::petgraph::visit::Walker;
+use std::time::Duration;
 
 pub const BULLET_RADIUS: f32 = 10.0;
 pub const BULLET_DURATION_MS: u64 = 2000;
@@ -26,7 +27,12 @@ impl Plugin for PlayerPlugin {
         app.add_systems(OnEnter(GameState::Playing), spawn_player)
             .add_systems(
                 Update,
-                (despawn_timed_objects, shoot, handle_bullet_collision)
+                (
+                    despawn_timed_objects,
+                    shoot,
+                    handle_bullet_collision,
+                    collision_handler_enemy_bullet,
+                )
                     .chain()
                     .in_set(GameplaySet::PlayerUpdate)
                     .run_if(in_state(GameState::Playing)),
@@ -71,7 +77,7 @@ fn spawn_player(
 }
 
 #[derive(Component)]
-pub struct Bullet { 
+pub struct Bullet {
     owner: Entity,
     damage: f32,
 }
@@ -85,12 +91,12 @@ pub struct Weapon {
 
 #[derive(Component)]
 pub struct SpawnLocation {
-    xy: Vec2
+    xy: Vec2,
 }
 
 #[derive(Component)]
 pub struct LifeSpan {
-    timer: Timer
+    timer: Timer,
 }
 
 fn shoot(
@@ -99,14 +105,15 @@ fn shoot(
     mut materials: ResMut<Assets<ColorMaterial>>,
     actions: Res<Actions>,
     mut player_query: Query<(&GlobalTransform, &mut Weapon, Entity), With<Player>>,
-    time: Res<Time>, 
+    time: Res<Time>,
 ) {
     let (player_transform, mut weapon, player_entity) = player_query.single_mut();
     weapon.timer.tick(time.delta());
-    
+
     if let Some(shoot_coord) = actions.shoot {
         if weapon.timer.finished() {
-            let direction_vec = (shoot_coord - player_transform.translation().truncate()).normalize();
+            let direction_vec =
+                (shoot_coord - player_transform.translation().truncate()).normalize();
             let velocity_vec = direction_vec * weapon.speed;
             let color = Color::hsl(0.5, 0.95, 0.7);
             let handle = Mesh2dHandle(meshes.add(Circle::new(BULLET_RADIUS)));
@@ -119,9 +126,9 @@ fn shoot(
                     material: materials.add(color),
                     ..default()
                 })
-                .insert(Bullet { 
+                .insert(Bullet {
                     owner: player_entity,
-                    damage: weapon.damage 
+                    damage: weapon.damage,
                 })
                 .insert(PhysicsBundle {
                     mass: Mass(10.),
@@ -133,9 +140,9 @@ fn shoot(
                     BULLET_RADIUS,
                 ))
                 .insert(LifeSpan {
-                    timer: Timer::new(Duration::from_millis(BULLET_DURATION_MS), TimerMode::Once)
+                    timer: Timer::new(Duration::from_millis(BULLET_DURATION_MS), TimerMode::Once),
                 });
-            
+
             weapon.timer.reset();
         }
     }
@@ -150,7 +157,7 @@ fn despawn_timed_objects(
         lifespan.timer.tick(time.delta());
         if lifespan.timer.finished() {
             if let Some(mut entity_commands) = commands.get_entity(entity) {
-                entity_commands.despawn();        
+                entity_commands.despawn();
             } else {
                 error!("Error getting entity to despawn");
             }
@@ -165,10 +172,14 @@ fn handle_bullet_collision(
     for e in collision_events.read() {
         assert_ne!(e.entity1, e.entity2);
         unsafe {
-            let Ok((mut velocity1, mut transform1, bullet1)) = bullet_query.get_unchecked(e.entity1) else {
+            let Ok((mut velocity1, mut transform1, bullet1)) =
+                bullet_query.get_unchecked(e.entity1)
+            else {
                 continue;
             };
-            let Ok((mut velocity2, mut transform2, bullet2)) = bullet_query.get_unchecked(e.entity2) else {
+            let Ok((mut velocity2, mut transform2, bullet2)) =
+                bullet_query.get_unchecked(e.entity2)
+            else {
                 continue;
             };
 
@@ -182,6 +193,56 @@ fn handle_bullet_collision(
             // todo: move bullets apart to avoid overlap?
             transform1.translation -= (normal * BULLET_RADIUS / 2.0).extend(0.0);
             transform2.translation += (normal * BULLET_RADIUS / 2.0).extend(0.0);
+        }
+    }
+}
+
+fn collision_handler_enemy_bullet(
+    mut bullet_query: Query<(&mut Velocity, &mut Transform, &Bullet), Without<Enemy>>,
+    mut player_query: Query<(&mut Velocity, &mut Transform, &Enemy), Without<Bullet>>,
+    mut collision_events: EventReader<CollisionEvent>,
+    mut commands: Commands,
+) {
+    for e in collision_events.read() {
+        assert_ne!(e.entity1, e.entity2);
+        let bullet_entity;
+        let enemy_entity;
+        let bullet_velocity: Velocity;
+        let enemy_velocity: Velocity;
+        let bullet_transform: Transform;
+        let enemy_transform: Transform;
+
+        if let Ok((mut bullet_velocity, mut bullet_transform, _bullet)) =
+            bullet_query.get_mut(e.entity1)
+        {
+            if let Ok((mut enemy_velocity, mut enemy_transform, _enemy)) =
+                player_query.get_mut(e.entity2)
+            {
+                bullet_entity = e.entity1;
+                enemy_entity = e.entity2;
+            } else {
+                continue;
+            }
+        } else if let Ok((mut bullet_velocity, mut bullet_transform, _bullet)) =
+            bullet_query.get_mut(e.entity2)
+        {
+            if let Ok((mut enemy_velocity, mut enemy_transform, _enemy)) =
+                player_query.get_mut(e.entity1)
+            {
+                bullet_entity = e.entity2;
+                enemy_entity = e.entity1;
+            } else {
+                continue;
+            }
+        } else {
+            continue;
+        }
+
+        if let Some(mut entity_commands) = commands.get_entity(bullet_entity) {
+            entity_commands.despawn();
+        }
+        if let Some(mut entity_commands) = commands.get_entity(enemy_entity) {
+            entity_commands.despawn();
         }
     }
 }
