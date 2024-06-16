@@ -38,7 +38,7 @@ pub struct TextureAssets {
     pub monster1: Handle<Image>,
     #[asset(path = "textures/black_hole.png")]
     pub black_hole: Handle<Image>,
-    #[asset(path = "textures/monsters/Icon19.png")]
+    #[asset(path = "textures/monsters/worm_mage.png")]
     pub player: Handle<Image>,
 }
 

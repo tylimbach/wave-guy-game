@@ -13,7 +13,7 @@ use bevy::utils::petgraph::visit::Walker;
 use std::time::Duration;
 
 pub const BULLET_RADIUS: f32 = 10.0;
-pub const BULLET_DURATION_MS: u64 = 2000;
+pub const BULLET_DURATION_MS: u64 = 1000;
 
 pub struct PlayerPlugin;
 
@@ -49,15 +49,11 @@ fn spawn_player(
     let Some(image_data) = image_assets.get(texture.clone()) else {
         panic!("Failed to get image data for player spawn");
     };
-    let size = Vec2::new(
-        image_data.texture_descriptor.size.width as f32,
-        image_data.texture_descriptor.size.height as f32,
-    );
+    let hitbox_dimensions = Vec2::new(150.0, 250.0);
 
     let sprite = SpriteBundle {
         texture,
-        transform: Transform::from_translation(Vec3::new(0., 0., ZLayer::Character.into()))
-            .with_scale(Vec3::new(3., 3., 3.)),
+        transform: Transform::from_translation(Vec3::new(0., 0., ZLayer::Character.into())),
         ..Default::default()
     };
 
@@ -68,7 +64,7 @@ fn spawn_player(
             mass: Mass(10.),
             ..default()
         })
-        .insert(Collider::new_aabb(CollisionLayer::Player, size / 2.0))
+        .insert(Collider::new_aabb(CollisionLayer::Player, hitbox_dimensions / 2.0))
         .insert(Weapon {
             timer: Timer::new(Duration::from_millis(50), TimerMode::Once),
             speed: 1000.0,
@@ -83,7 +79,7 @@ pub struct Bullet {
 }
 
 #[derive(Component)]
-pub struct Weapon {
+pub struct Weapon { 
     timer: Timer,
     speed: f32,
     damage: f32,

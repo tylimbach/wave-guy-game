@@ -97,8 +97,8 @@ fn move_enemy(
     let player_translation = player_query.single().translation;
 
     for mut enemy_transform in enemy_query.iter_mut() {
-        let direction = (player_translation - enemy_transform.translation).normalize_or_zero();
+        let direction = (player_translation - enemy_transform.translation).xy().normalize_or_zero();
         let movement = direction * speed * time.delta_seconds();
-        enemy_transform.translation += movement;
+        enemy_transform.translation += movement.extend(0.0);
     }
 }
